@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Immersive Discussion</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Immersive Discussion home"><span class="brand-mark">ID</span><span>Immersive Discussion</span></a>
+    <div class="top-actions"><span class="local-pill"><i></i> Local prototype</span></div>
+  </header>
+
+  <main id="homeView" class="page">
+    <section class="hero">
+      <div class="eyebrow">A shared space for ideas</div>
+      <h1>Meet inside the<br><span>world of your topic.</span></h1>
+      <p>Create a room, invite your group, and explore ideas together in a shared 3D space.</p>
+    </section>
+
+    <section class="home-grid">
+      <form id="createForm" class="panel create-panel">
+        <div class="panel-heading"><div><span class="step">01</span><h2>Create a world</h2></div><span class="small-label">ADMIN</span></div>
+        <label for="roomName">World name</label>
+        <input id="roomName" name="name" maxlength="80" placeholder="e.g. AI Research Circle" required minlength="2">
+        <label for="roomTopic">Discussion topic</label>
+        <textarea id="roomTopic" name="topic" maxlength="240" rows="3" placeholder="What will your group discuss?" required minlength="2"></textarea>
+        <label for="environment">Environment</label>
+        <select id="environment" name="environment">
+          <option value="seminar">Seminar room</option>
+          <option value="space">Space observatory</option>
+          <option value="garden">Zen garden</option>
+        </select>
+        <button class="primary-btn" type="submit">Create world <span>↗</span></button>
+        <p class="form-status" id="createStatus" role="status"></p>
+      </form>
+
+      <div class="panel join-panel">
+        <div class="panel-heading"><div><span class="step">02</span><h2>Join a world</h2></div><span class="small-label">PARTICIPANT</span></div>
+        <p class="muted">Have an invitation code? Enter it here to join the discussion.</p>
+        <form id="joinForm">
+          <label for="joinCode">Invitation code</label>
+          <input id="joinCode" name="code" placeholder="e.g. A7K2Q9" maxlength="6" required>
+          <label for="joinName">Your display name</label>
+          <input id="joinName" name="username" placeholder="How should others see you?" maxlength="24" required>
+          <button class="secondary-btn" type="submit">Enter world <span>→</span></button>
+          <p class="form-status" id="joinStatus" role="status"></p>
+        </form>
+        <div class="divider"></div>
+        <div class="room-list-heading"><h3>Local worlds</h3><button id="refreshRooms" class="text-btn" type="button">Refresh</button></div>
+        <div id="roomList" class="room-list"><p class="muted">Loading rooms…</p></div>
+      </div>
+    </section>
+    <footer class="footer">Built for local development · No paid APIs · Data stays in your local SQLite database</footer>
+  </main>
+
+  <main id="roomView" class="room-layout hidden">
+    <section class="world-column">
+      <div class="world-topline">
+        <button id="backHome" class="back-btn" type="button">← All worlds</button>
+        <div class="room-title-wrap"><span class="live-dot"></span><div><h1 id="worldName">Loading world…</h1><p id="worldTopic"></p></div></div>
+        <button id="copyInvite" class="outline-btn" type="button">Copy invite</button>
+      </div>
+      <div id="worldCanvas" class="world-canvas">
+        <div class="canvas-hint"><span>W A S D</span> or arrow keys to move <b>·</b> Drag to look around</div>
+        <div class="loading-world" id="worldLoading">Building your world…</div>
+      </div>
+      <div class="world-footer">
+        <div class="participant-strip"><span class="mini-avatars" id="miniAvatars"></span><span id="participantCount">Connecting…</span></div>
+        <span class="keyboard-help">Click world to focus movement</span>
+      </div>
+    </section>
+
+    <aside class="sidebar">
+      <div class="side-tabs">
+        <button class="tab active" data-tab="chat" type="button">Discussion</button>
+        <button class="tab" data-tab="notes" type="button">Shared notes</button>
+        <button class="tab" data-tab="manage" type="button" id="manageTab">Manage</button>
+      </div>
+      <section class="tab-panel" id="chatPanel">
+        <div class="side-heading"><div><h2>Group discussion</h2><p>Share ideas with everyone in the world.</p></div><span class="online-indicator">LIVE</span></div>
+        <div id="chatMessages" class="chat-messages"><div class="empty-state">Start the conversation. Your messages will appear here.</div></div>
+        <form id="chatForm" class="composer"><input id="chatInput" placeholder="Write a message…" maxlength="1000" autocomplete="off" required><button aria-label="Send message" type="submit">↑</button></form>
+        <p class="composer-note">Enter to send · Be kind to your fellow explorers</p>
+      </section>
+      <section class="tab-panel hidden" id="notesPanel">
+        <div class="side-heading"><div><h2>Shared notes</h2><p>Ideas saved for everyone in this room.</p></div></div>
+        <form id="noteForm" class="note-composer"><textarea id="noteInput" rows="3" maxlength="1000" placeholder="Add an idea, question, or decision…" required></textarea><button class="primary-btn" type="submit">Add to board +</button></form>
+        <div id="notesList" class="notes-list"><div class="empty-state">No shared notes yet.</div></div>
+      </section>
+      <section class="tab-panel hidden" id="managePanel">
+        <div class="side-heading"><div><h2>World settings</h2><p>Changes are visible to new visitors and saved to this room.</p></div></div>
+        <form id="manageForm" class="manage-form">
+          <label for="manageName">World name</label><input id="manageName" maxlength="80" required>
+          <label for="manageTopic">Discussion topic</label><textarea id="manageTopic" rows="3" maxlength="240" required></textarea>
+          <label for="manageEnvironment">Environment</label>
+          <select id="manageEnvironment"><option value="seminar">Seminar room</option><option value="space">Space observatory</option><option value="garden">Zen garden</option></select>
+          <label for="adminToken">Admin key</label><input id="adminToken" type="password" placeholder="Paste the key saved when you created the world" required>
+          <button class="primary-btn" type="submit">Save settings</button>
+          <p id="manageStatus" class="form-status" role="status"></p>
+        </form>
+        <div class="admin-note"><strong>Admin key tip</strong><p>When you create a world, save the admin key somewhere safe. Anyone with this key can edit the world settings.</p></div>
+      </section>
+    </aside>
+  </main>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>
